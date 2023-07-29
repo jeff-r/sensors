@@ -1,6 +1,7 @@
 import time
 import threading
 import serial
+import read_csv_data as rcd
 
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 print(ser.name)         # check which port was really used
@@ -9,7 +10,7 @@ continue_reading = True
 def read_data(filename):
   while continue_reading:
     str = ser.readline().decode('Ascii').replace("\r\n", "")
-    print(str)
+    print(rcd.transform_line(str))
 
 def tick(n):
   print("hi", n)
