@@ -12,7 +12,7 @@ import matplotlib.animation as animation
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 print(ser.name)         # check which port was really used
 
-N = 500
+N = 1000
 samples = []
 for n in range(N):
   samples.append([0,0,0])
@@ -48,7 +48,7 @@ def do_fft():
   fft = np.fft.fft(recents)
   power_spectrum = np.abs(fft) ** 2
   freqs = np.fft.fftfreq(len(recents), sampling_frequency).astype(float)
-  for n in range(5):
+  for n in range(20):
     power_spectrum[n] = 0
   return power_spectrum
 
@@ -65,16 +65,31 @@ fig, ax = plt.subplots()
 # line, = ax.semilogy(x, values)
 line, = ax.plot(x, values)
 
+# Window around peak value to use to calculate total power
+# Arbitrarily set this to number of samples that make up 1 Hz
+# So, find the index of the first frequency bin > 1
+power_window = np.where(x > 1.0)[0][0]
+
+def power_at(index, values):
+  min = int(index - power_window)
+  max = int(index + power_window)
+  if min < 0:
+    return 0
+  return np.trapz(values[min:max], x[min:max])
+
 # Define the update function for the animation
 def update(n):
-    # Shift the x and y data
-    values = do_fft()
-    values = values[:len(freqs)//2]
-    ax.set_ylim(np.min(values), np.max(values))
-    max_index = np.argmax(values)
-    print("%.2f" % x[max_index], "%.2f" % np.max(values))
-    line.set_data(x, values)
-    return line,
+  # Shift the x and y data
+  values = do_fft()
+  values = values[:len(freqs)//2]
+  ax.set_ylim(np.min(values), np.max(values))
+  ax.set_xlabel('Frequency (Hz)')
+  ax.set_ylabel('Tremor magnitude')
+  max_index = np.argmax(values)
+  power = power_at(max_index, values)
+  print("%.2f" % x[max_index], "%.2f" % np.max(values), "%.2f" % power)
+  line.set_data(x, values)
+  return line,
 
 def main():
   n = 0
@@ -86,8 +101,13 @@ def main():
   print('just called FuncAnimation')
 
   fig.canvas.mpl_connect('close_event', on_close)
+  fig.canvas.mpl_connect('button_press_event', on_click)
   # Show the plot
   plt.show()
+
+def on_click(event):
+  print('click')
+  plt.savefig('woohoo.png')
 
 def on_close(event):
   print("\n")
@@ -96,7 +116,7 @@ def on_close(event):
     f.write(str(line))
     f.write("\n")
   f.close
-  continue_reading = False
+  # continue_reading = False
   # data_thread.join()
   #ser.close()
 
