@@ -33,8 +33,10 @@ def read_data(filename):
     except AttributeError:
       print('Saw AttributeError')
 
+blackman = np.blackman(N)
 def recent_values():
-  return list(map(val, samples[-N:]))
+  windowed = blackman*list(map(val, samples[-N:]))
+  return windowed
 
 def val(point):
   return point[2]
@@ -55,18 +57,17 @@ def do_fft():
   power_spectrum[4] = 0
   power_spectrum[5] = 0
   power_spectrum[6] = 0
-  return power_spectrum[:len(freqs)//2+1]
+  return power_spectrum # [:len(freqs)//2+1]
   # return fft[:len(freqs)//2+1]
 
 values = do_fft()
-freqs = np.fft.fftfreq(len(2*values), sampling_frequency).astype(float)
-x = freqs # [:len(freqs)//2+1]
+freqs = np.fft.fftfreq(len(values), sampling_frequency).astype(float)
+
+x = freqs[:len(freqs)//2]
+values = values[:len(freqs)//2]
 
 # Create a figure and axis object
 fig, ax = plt.subplots()
-
-# Define the x axis
-# x = np.arange(0, N, 1)
 
 # Create a line plot
 line, = ax.plot(x, values)
@@ -75,6 +76,7 @@ line, = ax.plot(x, values)
 def update(n):
     # Shift the x and y data
     values = do_fft()
+    values = values[:len(freqs)//2]
     ax.set_ylim(np.min(values), np.max(values))
     print(np.max(values))
     #ax.set_ylim(0, 1)
