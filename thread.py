@@ -40,7 +40,6 @@ def recent_values():
 
 def val(point):
   return point[2]
-  # return math.sqrt(point[0]**2 + point[1]**2 + point[2]**2)
 
 sampling_frequency = 1.0 / 50.0
 
@@ -48,17 +47,10 @@ def do_fft():
   recents = recent_values()
   fft = np.fft.fft(recents)
   power_spectrum = np.abs(fft) ** 2
-  # power_spectrum = np.abs(fft)
   freqs = np.fft.fftfreq(len(recents), sampling_frequency).astype(float)
-  power_spectrum[0] = 0
-  power_spectrum[1] = 0
-  power_spectrum[2] = 0
-  power_spectrum[3] = 0
-  power_spectrum[4] = 0
-  power_spectrum[5] = 0
-  power_spectrum[6] = 0
-  return power_spectrum # [:len(freqs)//2+1]
-  # return fft[:len(freqs)//2+1]
+  for n in range(5):
+    power_spectrum[n] = 0
+  return power_spectrum
 
 values = do_fft()
 freqs = np.fft.fftfreq(len(values), sampling_frequency).astype(float)
@@ -70,6 +62,7 @@ values = values[:len(freqs)//2]
 fig, ax = plt.subplots()
 
 # Create a line plot
+# line, = ax.semilogy(x, values)
 line, = ax.plot(x, values)
 
 # Define the update function for the animation
@@ -78,8 +71,8 @@ def update(n):
     values = do_fft()
     values = values[:len(freqs)//2]
     ax.set_ylim(np.min(values), np.max(values))
-    print(np.max(values))
-    #ax.set_ylim(0, 1)
+    max_index = np.argmax(values)
+    print("%.2f" % x[max_index], "%.2f" % np.max(values))
     line.set_data(x, values)
     return line,
 
