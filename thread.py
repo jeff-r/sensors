@@ -8,6 +8,10 @@ import read_csv_data as rcd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from datetime import datetime
+
+def now_formatted():
+  return datetime.now().strftime("%y-%m-%d-%H-%M-%S")
 
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 print(ser.name)         # check which port was really used
@@ -39,7 +43,7 @@ def recent_values():
   return windowed
 
 def val(point):
-  return point[2]
+  return point[1]
 
 sampling_frequency = 1.0 / 50.0
 
@@ -107,7 +111,14 @@ def main():
 
 def on_click(event):
   print('click')
-  plt.savefig('woohoo.png')
+  plt.savefig('img/' + now_formatted() + '.png')
+  file = open('moments.csv', 'a')
+  now = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+  values = do_fft()
+  values = values[:len(freqs)//2]
+  max_index = np.argmax(values)
+  power = power_at(max_index, values)
+  file.write(now + "," + "%.2f" % x[max_index] + ",%.2f" % np.max(values) + ",%.2f" % power + "\n")
 
 def on_close(event):
   print("\n")
@@ -116,9 +127,6 @@ def on_close(event):
     f.write(str(line))
     f.write("\n")
   f.close
-  # continue_reading = False
-  # data_thread.join()
-  #ser.close()
 
 try:
   main()
