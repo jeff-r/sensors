@@ -11,7 +11,7 @@ import matplotlib.animation as animation
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 print(ser.name)         # check which port was really used
 
-N = 1000
+N = 200
 samples = []
 for n in range(N):
   samples.append([0,0,0])
@@ -38,23 +38,47 @@ def recent_values():
 def val(point):
   return point[2]
 
-print('recent_values:', recent_values())
+sampling_frequency = 1.0 / 50.0
+
+def do_fft():
+  recents = recent_values()
+  fft = np.fft.fft(recents)
+  power_spectrum = np.abs(fft) ** 2
+  # power_spectrum = np.abs(fft)
+  freqs = np.fft.fftfreq(len(recents), sampling_frequency).astype(float)
+  power_spectrum[0] = 0
+  power_spectrum[1] = 0
+  power_spectrum[2] = 0
+  power_spectrum[3] = 0
+  power_spectrum[4] = 0
+  power_spectrum[5] = 0
+  power_spectrum[6] = 0
+  return power_spectrum[:len(freqs)//2+1]
+  # return fft[:len(freqs)//2+1]
+
+values = do_fft()
+freqs = np.fft.fftfreq(len(2*values), sampling_frequency).astype(float)
+x = freqs # [:len(freqs)//2+1]
+
+print('values:', values)
 
 # Create a figure and axis object
 fig, ax = plt.subplots()
 
 # Define the x axis
-x = np.arange(0, N, 1)
+# x = np.arange(0, N, 1)
 
+print('x:', len(x))
+print('values:', len(values))
 # Create a line plot
-line, = ax.plot(x, recent_values())
+line, = ax.plot(x, values)
 
 # Define the update function for the animation
 def update(n):
     # Shift the x and y data
-    vals = recent_values()
-    ax.set_ylim(np.min(vals), np.max(vals))
-    line.set_data(x, recent_values())
+    values = do_fft()
+    ax.set_ylim(np.min(values), np.max(values))
+    line.set_data(x, values)
     return line,
 
 def main():
