@@ -9,10 +9,10 @@ def transform_val(val):
 
 def transform_line(str):
   vals = str.replace("\n", "").split(",")
-  if len(vals) == 3 and vals != ['']:
-    vals = [vals[0], vals[1], vals[2]]
-  else:
+  if vals == [''] or len(vals) != 6:
     return str
+
+  vals = [vals[0], vals[1], vals[2]]
   vals = list(map(transform_val, vals))
   return vals
 
