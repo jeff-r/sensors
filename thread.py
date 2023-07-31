@@ -88,7 +88,7 @@ def update(n):
   values = values[:len(freqs)//2]
   ax.set_ylim(np.min(values), np.max(values))
   ax.set_xlabel('Frequency (Hz)')
-  ax.set_ylabel('Tremor magnitude')
+  ax.set_ylabel('Tremor amplitude')
   max_index = np.argmax(values)
   power = power_at(max_index, values)
   print("%.2f" % x[max_index], "%.2f" % np.max(values), "%.2f" % power)
